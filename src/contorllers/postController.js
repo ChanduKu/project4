@@ -30,7 +30,7 @@ const urlShor = async (req, res) => {
         .send({ status: true, message: "pelease enter body data " });
     const baseUrl = "http://localhost:3000";
     let longUrl = req.body.longUrl;
-    let urlCode = req.body.urlCode;
+    
     if (!longUrl)
       return res
         .status(400)
@@ -39,10 +39,7 @@ const urlShor = async (req, res) => {
       return res
         .status(400)
         .send({ status: true, message: "url is not valid" });
-    if (!urlCode)
-      return res
-        .status(400)
-        .send({ status: true, message: "pelease enter url code " });
+   
     const usrlexists = await urlModel.findOne({ longUrl: longUrl },{_id:0,__v:0});
     console.log(usrlexists);
 
@@ -51,16 +48,12 @@ const urlShor = async (req, res) => {
     if (usrlexists) {
       return res.status(200).send({ status: true, message: usrlexists });
     }
-    let codeExists = await urlModel.findOne({ urlCode: urlCode });
-    if (codeExists)
-      return res
-        .status(400)
-        .send({ status: true, message: "  url code is already taken" });
+  
 
     const shortedUrl = shortId.generate();
     const newUrl = baseUrl + "/" + shortedUrl;
     const finalUrl = {
-      urlCode: req.body.urlCode,
+      urlCode: shortedUrl,
       longUrl: longUrl,
       shortUrl: newUrl,
     };
