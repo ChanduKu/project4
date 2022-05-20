@@ -2,7 +2,6 @@ const mongoose = require("mongoose");
 const shortId = require("shortid");
 const validator = require("validator");
 const urlModel = require("../models/urlModel");
-const { createClient } = require("redis");
 const radis = require("redis");
 const { promisify } = require("util");
 const redisClinet = radis.createClient(
@@ -18,23 +17,46 @@ redisClinet.on("connect", async function () {
 });
 const set = promisify(redisClinet.SET).bind(redisClinet);
 const get = promisify(redisClinet.GET).bind(redisClinet);
-
+const isValidReqBody = function (reqBody) {
+  return Object.keys(reqBody).length > 0;
+};
 const urlShor = async (req, res) => {
   try {
     //----------connecting to radis--------
-
+    console.log(req.body);
+    if (!isValidReqBody(req.body))
+      return res
+        .status(400)
+        .send({ status: true, message: "pelease enter body data " });
     const baseUrl = "http://localhost:3000";
-    let longUrl = req.body.longUrl.toString();
-    console.log(validator.isURL(longUrl) + " " + longUrl);
+    let longUrl = req.body.longUrl;
+    let urlCode = req.body.urlCode;
+    if (!longUrl)
+      return res
+        .status(400)
+        .send({ status: true, message: "pelease enter longUrl " });
     if (!validator.isURL(longUrl))
       return res
         .status(400)
         .send({ status: true, message: "url is not valid" });
-    const usrlexists = await urlModel.findOne({ longUrl: longUrl });
-    if (usrlexists)
+    if (!urlCode)
       return res
-        .status(200)
-        .send({ status: true, message: usrlexists.shortUrl });
+        .status(400)
+        .send({ status: true, message: "pelease enter url code " });
+    const usrlexists = await urlModel.findOne({ longUrl: longUrl });
+    console.log(usrlexists);
+
+    let cacheData = await get(`${req.body.urlCode}`);
+
+    if (usrlexists) {
+      return res.status(200).send({ status: true, message: usrlexists });
+    }
+    let codeExists = await urlModel.findOne({ urlCode: urlCode });
+    if (codeExists)
+      return res
+        .status(400)
+        .send({ status: true, message: "  url code is already taken" });
+
     const shortedUrl = shortId.generate();
     const newUrl = baseUrl + "/" + shortedUrl;
     const finalUrl = {
@@ -43,6 +65,11 @@ const urlShor = async (req, res) => {
       shortUrl: newUrl,
     };
     const createUrl = await urlModel.create(finalUrl);
+    if (createUrl) {
+      const da = await set(`${req.body.urlCode}`, JSON.stringify(createUrl));
+
+      return res.status(201).send({ status: true, message: createUrl });
+    }
     res.status(200).send({ status: true, message: createUrl.shortUrl });
   } catch (e) {
     res.status(500).send({ status: false, error: e.message });
