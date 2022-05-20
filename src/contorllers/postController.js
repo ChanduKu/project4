@@ -43,7 +43,7 @@ const urlShor = async (req, res) => {
       return res
         .status(400)
         .send({ status: true, message: "pelease enter url code " });
-    const usrlexists = await urlModel.findOne({ longUrl: longUrl });
+    const usrlexists = await urlModel.findOne({ longUrl: longUrl },{_id:0,__v:0});
     console.log(usrlexists);
 
     let cacheData = await get(`${req.body.urlCode}`);
