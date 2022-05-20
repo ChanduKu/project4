@@ -61,7 +61,7 @@ const urlShor = async (req, res) => {
     if (createUrl) {
       const da = await set(`${req.body.urlCode}`, JSON.stringify(createUrl));
 
-      return res.status(201).send({ status: true, message: createUrl });
+      return res.status(201).send({ status: true, message: finalUrl });
     }
     res.status(200).send({ status: true, message: createUrl.shortUrl });
   } catch (e) {
