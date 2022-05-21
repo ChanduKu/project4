@@ -36,7 +36,8 @@ const originalUrl = async (req, res) => {
       return res.status(404).send({ status: false, message: "url  not found" });
     if (findUrl) {
       const d = await get(`${req.body.urlCode}`);
-      return res.status(302).redirect(findUrl.longUrl);
+      const datas=JSON.parse(d)
+      return res.status(302).redirect(datas.longUrl);
     }
     return res.status(302).redirect(findUrl.longUrl);
   } catch (e) {

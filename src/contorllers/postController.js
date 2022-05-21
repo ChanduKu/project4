@@ -46,7 +46,7 @@ const urlShor = async (req, res) => {
     let cacheData = await get(`${req.body.urlCode}`);
 
     if (usrlexists) {
-      return res.status(200).send({ status: true, message: usrlexists });
+      return res.status(200).send({ status: true, message: cacheData});
     }
   
 
@@ -61,9 +61,9 @@ const urlShor = async (req, res) => {
     if (createUrl) {
       const da = await set(`${req.body.urlCode}`, JSON.stringify(createUrl));
 
-      return res.status(201).send({ status: true, message: finalUrl });
+      return res.status(201).send({ status: true, message:createUrl });
     }
-    res.status(200).send({ status: true, message: createUrl.shortUrl });
+    // res.status(200).send({ status: true, message: createUrl.shortUrl });
   } catch (e) {
     res.status(500).send({ status: false, error: e.message });
   }
